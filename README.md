@@ -63,7 +63,7 @@ oauth2/
 │   ├── pending_role_assignments.sql
 │   ├── root.sql            # Full database schema
 │   └── migrations/         # Database migrations
-│       ├── 2025-12-08_rename_database.sql
+│       ├── 2025-12-08_rename_database.sql # Only for People who has user_permissions.sql (this file doesnt exist anymore)
 │       └── migrate-database.sh
 ├── installers/             # Automated installation scripts
 │   ├── install-api.sh      # API backend installer
