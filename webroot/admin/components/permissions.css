@@ -1,0 +1,105 @@
+/* Custom Checkbox Styles - Fast and Lightweight */
+.custom-checkbox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.checkbox-box {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.custom-checkbox:hover .checkbox-box {
+    border-color: rgba(156, 163, 175, 0.6);
+    background: rgba(156, 163, 175, 0.05);
+}
+
+.checkbox-check {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.15s ease;
+}
+
+.custom-checkbox input:checked ~ .checkbox-box {
+    background: rgba(156, 163, 175, 0.2);
+    border-color: #9CA3AF;
+}
+
+.custom-checkbox input:checked ~ .checkbox-box .checkbox-check {
+    opacity: 1;
+    transform: scale(1);
+    stroke: #9CA3AF;
+}
+
+/* Disabled state */
+.custom-checkbox.pointer-events-none .checkbox-box {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Permission Categories */
+.permission-category {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.permission-item {
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.permission-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.sub-permissions {
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
+
+/* Color variants for category icons */
+.text-blue-400 { color: #60a5fa; }
+.border-blue-500\/20 { border-color: rgba(59, 130, 246, 0.2); }
+
+.text-yellow-400 { color: #facc15; }
+.border-yellow-500\/20 { border-color: rgba(234, 179, 8, 0.2); }
+
+.text-purple-400 { color: #c084fc; }
+.border-purple-500\/20 { border-color: rgba(168, 85, 247, 0.2); }
+
+.text-red-400 { color: #f87171; }
+.border-red-500\/20 { border-color: rgba(239, 68, 68, 0.2); }

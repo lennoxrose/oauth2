@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Permissions - Admin Dashboard</title>
+    <link rel="icon" href="/webroot/assets/icon.ico" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#9CA3AF'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../../style.css" />
+    <link rel="stylesheet" href="../../components/permissions.css" />
+</head>
+<body class="bg-black text-gray-200 antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar (dynamically generated) -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <header class="border-b border-white/10 bg-black/40 px-6 py-6">
+                <h2 class="text-3xl font-bold text-white">User Permissions</h2>
+                <p class="text-gray-400 mt-1">Manage who can access the admin panel</p>
+            </header>
+            
+            <div class="p-6">
+                <!-- Add User Section -->
+                <div class="border border-white/10 p-6 bg-black/40 mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Add New Admin</h3>
+                    <div class="flex flex-col gap-4">
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Search Verified User (by username or ID)</label>
+                            <input 
+                                type="text" 
+                                id="user-search" 
+                                placeholder="Type to search..." 
+                                class="w-full bg-black/60 border border-white/10 px-4 py-2 text-white focus:outline-none focus:border-accent"
+                                autocomplete="off"
+                            />
+                            <div id="search-results" class="hidden absolute z-10 w-full mt-1 bg-black border border-white/10 max-h-64 overflow-y-auto">
+                                <!-- Search results will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permissions List -->
+                <div class="border border-white/10 bg-black/40">
+                    <div class="border-b border-white/10 p-4">
+                        <h3 class="text-xl font-semibold text-white">Admin Users</h3>
+                    </div>
+                    
+                    <div id="permissions-table" class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="border-b border-white/10 bg-black/20">
+                                <tr class="text-left text-gray-400 text-sm">
+                                    <th class="px-6 py-3">User</th>
+                                    <th class="px-6 py-3 text-center">Dashboard</th>
+                                    <th class="px-6 py-3 text-center">View Users</th>
+                                    <th class="px-6 py-3 text-center">Delete Users</th>
+                                    <th class="px-6 py-3 text-center">Pullback</th>
+                                    <th class="px-6 py-3 text-center">Server Sync</th>
+                                    <th class="px-6 py-3 text-center">View Settings</th>
+                                    <th class="px-6 py-3 text-center">Edit Settings</th>
+                                    <th class="px-6 py-3 text-center">Manage Perms</th>
+                                    <th class="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="permissions-body" class="divide-y divide-white/10">
+                                <!-- Permissions will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-black border border-white/20 p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-semibold text-white mb-2">Edit Permissions</h3>
+            <div id="edit-user-info" class="mb-4 text-gray-400"></div>
+            
+            <div id="permissions-container" class="mb-6">
+                <!-- Permissions will be dynamically generated here -->
+            </div>
+            
+            <div class="flex gap-3 sticky bottom-0 bg-black pt-4 border-t border-white/10">
+                <button id="save-perms-btn" class="flex-1 px-4 py-2 bg-accent/20 border border-accent/40 text-accent hover:bg-accent/30 transition-colors">
+                    Save Changes
+                </button>
+                <button id="cancel-edit-btn" class="flex-1 px-4 py-2 border border-white/10 text-gray-300 hover:bg-white/5 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-black border border-white/20 p-6 max-w-md w-full mx-4">
+            <div class="flex flex-col items-center text-center">
+                <div id="alert-icon" class="mb-4"></div>
+                <h3 id="alert-title" class="text-xl font-semibold text-white mb-2"></h3>
+                <p id="alert-message" class="text-gray-300 mb-6"></p>
+                <button id="alert-ok-btn" class="w-full px-4 py-2 bg-accent/20 border border-accent/40 text-accent hover:bg-accent/30 transition-colors font-semibold">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-black border border-white/20 p-6 max-w-md w-full mx-4">
+            <div class="flex flex-col items-center text-center">
+                <div id="confirm-icon" class="mb-4">
+                    <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h3 id="confirm-title" class="text-xl font-semibold text-white mb-2"></h3>
+                <p id="confirm-message" class="text-gray-300 mb-6 whitespace-pre-line"></p>
+                <div class="flex gap-3 w-full">
+                    <button id="confirm-yes-btn" class="flex-1 px-4 py-2 bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors font-semibold">
+                        Yes, Remove
+                    </button>
+                    <button id="confirm-no-btn" class="flex-1 px-4 py-2 border border-white/10 text-gray-300 hover:bg-white/5 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../components/sidebar.js?v=34"></script>
+    <script src="../../components/permissions.js?v=34"></script>
+    <script>
+        // Initialize sidebar for this page
+        document.addEventListener('DOMContentLoaded', function() {
+            initSidebar('permissions');
+            
+            // Load versioned scripts
+            const scripts = [
+                { src: '../../js/config.js', version: window.SCRIPT_VERSION },
+                { src: '../../js/auth.js', version: window.SCRIPT_VERSION },
+                { src: '../../js/permissions-page.js', version: window.SCRIPT_VERSION }
+            ];
+            
+            scripts.forEach(script => {
+                const s = document.createElement('script');
+                s.src = `${script.src}?v=${script.version}`;
+                document.body.appendChild(s);
+            });
+        });
+    </script>
+</body>
+</html>
+

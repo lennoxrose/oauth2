@@ -1,0 +1,112 @@
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html index.php;
+
+    server_name _;
+
+    ssl_certificate /etc/letsencrypt/live/api.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.example.com/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    ##
+    ## OAuth2 ROUTES
+    ##
+    location /v2/oauth2/discord/auth {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/auth.php;
+    }
+
+    location /v2/oauth2/discord/callback {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/callback.php;
+    }
+
+    location ~ ^/v2/oauth2/discord/users(/.*)?$ {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/users.php;
+    }
+
+    location /v2/oauth2/discord/stats {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/stats.php;
+    }
+
+    location /v2/oauth2/discord/admin {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/admin.php;
+    }
+
+    location /v2/oauth2/discord/cleanup {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/cleanup.php;
+    }
+
+    location /v2/oauth2/discord/delete-all {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/delete-all.php;
+    }
+
+    location /v2/oauth2/discord/cleanup-all {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/cleanup-all.php;
+    }
+
+    location /v2/oauth2/discord/permissions {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/permissions.php;
+    }
+
+    location /v2/oauth2/discord/settings {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/settings.php;
+    }
+
+    location /v2/oauth2/discord/pending-roles {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/pending-roles.php;
+    }
+
+    location /v2/oauth2/discord/verify-check {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/verify-check.php;
+    }
+
+    location /v2/oauth2/discord/pullback {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/pullback.php;
+    }
+
+    ##
+    ## Default PHP Handler
+    ##
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+
+    ##
+    ## Static Files
+    ##
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

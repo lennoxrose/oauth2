@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bot Settings - Admin Dashboard</title>
+    <link rel="icon" href="/webroot/assets/icon.ico" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#9CA3AF'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../../style.css" />
+</head>
+<body class="bg-black text-gray-200 antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar (dynamically generated) -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <header class="border-b border-white/10 bg-black/40 px-6 py-6">
+                <h2 class="text-3xl font-bold text-white">Bot Settings</h2>
+                <p class="text-gray-400 mt-1">Configure your Discord bot settings</p>
+            </header>
+            
+            <div class="p-6">
+                <!-- Settings Form -->
+                <div class="space-y-6">
+                    <!-- Discord Bot Configuration -->
+                    <div class="border border-white/10 bg-black/40 p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            <h3 class="text-xl font-bold text-accent">Discord Bot Configuration</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-sm font-medium text-gray-300">Bot Token</label>
+                                    <button onclick="togglePasswordVisibility('token')" class="text-xs text-accent hover:text-white transition-colors flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        <span>Show/Hide</span>
+                                    </button>
+                                </div>
+                                <input type="password" id="token" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Your Discord bot token from the Developer Portal</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Client ID</label>
+                                <input type="text" id="client_id" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Your Discord application's client ID</p>
+                            </div>
+                            
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-sm font-medium text-gray-300">Client Secret</label>
+                                    <button onclick="togglePasswordVisibility('client_secret')" class="text-xs text-accent hover:text-white transition-colors flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        <span>Show/Hide</span>
+                                    </button>
+                                </div>
+                                <input type="password" id="client_secret" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Your Discord application's client secret</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Command Prefix</label>
+                                <input type="text" id="prefix" maxlength="3" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Prefix for bot commands (e.g., !, ;, .)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Owner User ID</label>
+                                <input type="text" id="owner_id" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Discord user ID of the bot owner</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Main Server/Guild ID</label>
+                                <input type="text" id="guild_id" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">The main Discord server ID where the bot operates</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OAuth2 Configuration -->
+                    <div class="border border-white/10 bg-black/40 p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                            <h3 class="text-xl font-bold text-accent">OAuth2 Configuration</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Redirect URI</label>
+                                <input type="text" id="redirect_uri" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">OAuth2 callback URL (e.g., https://yourdomain.com/callback)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Website URL</label>
+                                <input type="text" id="web_url" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Your main website URL</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role Configuration -->
+                    <div class="border border-white/10 bg-black/40 p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <h3 class="text-xl font-bold text-accent">Role Configuration</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Verified Role ID</label>
+                                <input type="text" id="verified_role_id" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Role given to users after they verify (leave empty to disable)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2 text-gray-300">Unverified Role ID</label>
+                                <input type="text" id="unverified_role_id" class="w-full bg-black border border-white/10 text-white px-4 py-2 focus:outline-none focus:border-accent transition-colors">
+                                <p class="text-xs text-gray-500 mt-1">Role given to new members before verification (leave empty to disable)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success/Error Modal -->
+    <div id="messageModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-black border border-white/10 p-6 max-w-md w-full mx-4">
+            <div class="flex items-center gap-3 mb-4">
+                <span id="modalIcon" class="text-3xl"></span>
+                <h3 id="modalTitle" class="text-xl font-bold text-white"></h3>
+            </div>
+            <p id="modalMessage" class="text-gray-300 mb-6"></p>
+            <button onclick="closeModal()" class="w-full px-4 py-2 border border-accent text-accent hover:bg-accent hover:text-black transition-colors font-semibold">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification for Unsaved Changes -->
+    <div id="unsaved-toast" class="fixed bottom-6 right-6 bg-black border border-yellow-500/40 p-4 shadow-lg hidden z-50 max-w-md">
+        <div class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div class="flex-1">
+                <h4 class="font-semibold text-yellow-400 mb-1">Unsaved Changes</h4>
+                <p class="text-gray-300 text-sm mb-3">You have unsaved settings changes.</p>
+                <div class="flex gap-2">
+                    <button onclick="undoChanges()" class="px-3 py-1 text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors">
+                        Undo Changes
+                    </button>
+                    <button onclick="saveAllSections()" class="px-3 py-1 text-sm bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/30 transition-colors">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+            <button onclick="hideToast()" class="text-gray-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent mb-4"></div>
+            <p class="text-gray-300 text-lg">Loading settings...</p>
+        </div>
+    </div>
+
+    <script src="../../components/sidebar.js?v=34"></script>
+    <script src="../../components/permissions.js?v=34"></script>
+    <script>
+        // Initialize sidebar for this page
+        document.addEventListener('DOMContentLoaded', function() {
+            initSidebar('settings');
+            
+            // Load versioned scripts
+            const scripts = [
+                { src: '../../js/config.js', version: window.SCRIPT_VERSION },
+                { src: '../../js/auth.js', version: window.SCRIPT_VERSION },
+                { src: '../../js/settings.js', version: window.SCRIPT_VERSION }
+            ];
+            
+            scripts.forEach(script => {
+                const s = document.createElement('script');
+                s.src = `${script.src}?v=${script.version}`;
+                document.body.appendChild(s);
+            });
+        });
+    </script>
+</body>
+</html>

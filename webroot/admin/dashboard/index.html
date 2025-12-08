@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <link rel="icon" href="/webroot/assets/icon.ico" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#9CA3AF'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../style.css" />
+</head>
+<body class="bg-black text-gray-200 antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar (dynamically generated) -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <header class="border-b border-white/10 bg-black/40 px-6 py-6">
+                <h2 class="text-3xl font-bold text-white">Dashboard Overview</h2>
+                <p class="text-gray-400 mt-1">Welcome to your admin panel</p>
+            </header>
+            
+            <div class="p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="border border-white/10 p-6 bg-black/40">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-400 font-semibold">Total Users</h3>
+                            <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <p id="total-users" class="text-4xl font-bold text-white">-</p>
+                        <p class="text-gray-400 text-sm mt-2">Verified accounts</p>
+                    </div>
+                    
+                    <div class="border border-white/10 p-6 bg-black/40">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-400 font-semibold">Today</h3>
+                            <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <p id="today-users" class="text-4xl font-bold text-white">-</p>
+                        <p class="text-gray-400 text-sm mt-2">Verified today</p>
+                    </div>
+                    
+                    <div class="border border-white/10 p-6 bg-black/40">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-gray-400 font-semibold">Database</h3>
+                            <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                        </div>
+                        <p class="text-2xl font-bold text-accent">MariaDB</p>
+                        <p class="text-gray-400 text-sm mt-2">Active connection</p>
+                    </div>
+                </div>
+
+                <!-- Recent Users -->
+                <div class="border border-white/10 bg-black/40">
+                    <div class="p-6 border-b border-white/10">
+                        <h3 class="text-xl font-bold text-white">Recent Verifications</h3>
+                    </div>
+                    <div id="recent-users" class="p-6">
+                        <div class="flex items-center justify-center py-8">
+                            <svg class="w-8 h-8 text-accent animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="../components/sidebar.js?v=34"></script>
+    <script src="../components/permissions.js?v=34"></script>
+    <script>
+        // Initialize sidebar for this page
+        document.addEventListener('DOMContentLoaded', function() {
+            initSidebar('dashboard');
+            
+            // Load versioned scripts
+            const scripts = [
+                { src: '../js/config.js', version: window.SCRIPT_VERSION },
+                { src: '../js/auth.js', version: window.SCRIPT_VERSION },
+                { src: '../js/dashboard.js', version: window.SCRIPT_VERSION },
+                { src: '../js/settings.js', version: window.SCRIPT_VERSION }
+            ];
+            
+            scripts.forEach(script => {
+                const s = document.createElement('script');
+                s.src = `${script.src}?v=${script.version}`;
+                document.body.appendChild(s);
+            });
+        });
+    </script>
+</body>
+</html>

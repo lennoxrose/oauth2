@@ -1,0 +1,21 @@
+<emojis>
+  <!-- Emoji list for the bot use your own if your not the owner -->
+  <emoji name="info" id="1447332734413439118" />
+  <emoji name="warn" id="1447333026874003676" />
+  <emoji name="member" id="1447332985916620863" />
+  <emoji name="secure" id="1447332693518979132" />
+  <emoji name="sparkle" id="1404049227411361874" />
+  <emoji name="confirm" id="1404062089718272003" />
+  <emoji name="good_connection" id="1404063328455753789" />
+  <emoji name="mild_connection" id="1404063326563995688" />
+  <emoji name="bad_connection" id="1404063324634611822" />
+  <emoji name="network" id="1404066633336754196" />
+  <emoji name="confirm" id="1404062089718272003" />
+  <emoji name="cancel" id="1404070746770112623" />
+  <emoji name="Other" id="1404157223478886450" />
+  <emoji name="Support" id="1404157229334003923" />
+  <emoji name="Billing" id="1404157225622176015" />
+  <emoji name="neterror" id="1404196736960041101" />
+  <emoji name="mod" id="1404196738335637637" />
+  <emoji name="folder" id="1404197045530787931" />
+</emojis>

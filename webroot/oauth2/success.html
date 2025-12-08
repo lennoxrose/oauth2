@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="../assets/icon.ico" />
+    <title>Verification Successful</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#9CA3AF'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-black text-gray-200 antialiased">
+    <main class="mx-auto max-w-6xl px-3 sm:px-6 lg:px-8 min-h-screen flex items-center justify-center py-16">
+        <div class="w-full max-w-2xl text-center fade-in">
+            <div class="inline-flex items-center justify-center w-24 h-24 mb-6 border border-white/10 bg-black/40">
+                <span class="text-5xl">✅</span>
+            </div>
+            
+            <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight text-white mb-4">
+                Verification <span class="text-accent">Successful!</span>
+            </h1>
+            
+            <p class="text-lg text-gray-300 mb-8">
+                Your Discord account has been verified successfully.
+            </p>
+
+            <div class="mt-8 border border-white/10 p-6">
+                <p class="text-white">You can now close this page and return to Discord.</p>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

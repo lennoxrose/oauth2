@@ -1,0 +1,1 @@
+the sub folder are showing you the location the the files should be in the location is meant to be in is /var/www/html/{sub-files}

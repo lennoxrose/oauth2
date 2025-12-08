@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pullback - Admin Dashboard</title>
+    <link rel="icon" href="/webroot/assets/icon.ico" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#9CA3AF'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../style.css" />
+</head>
+<body class="bg-black text-gray-200 antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar (dynamically generated) -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <header class="border-b border-white/10 bg-black/40 px-6 py-6">
+                <h2 class="text-3xl font-bold text-white">Pullback Users</h2>
+                <p class="text-gray-400 mt-1">Re-add verified users to your Discord server</p>
+            </header>
+            
+            <div class="p-6">
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="border border-white/10 bg-black/40 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Total Verified</p>
+                                <p id="total-count" class="text-3xl font-bold text-white mt-1">0</p>
+                            </div>
+                            <svg class="w-12 h-12 text-accent/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="border border-green-500/20 bg-green-500/5 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">In Server</p>
+                                <p id="in-server-count" class="text-3xl font-bold text-green-400 mt-1">0</p>
+                            </div>
+                            <svg class="w-12 h-12 text-green-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="border border-red-500/20 bg-red-500/5 p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Left Server</p>
+                                <p id="left-server-count" class="text-3xl font-bold text-red-400 mt-1">0</p>
+                            </div>
+                            <svg class="w-12 h-12 text-red-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Members in Server -->
+                <div class="border border-white/10 bg-black/40 mb-6">
+                    <div class="p-6 border-b border-white/10 bg-green-500/5">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3 class="text-xl font-bold text-white">Members in Server</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-1">Users currently in your Discord server</p>
+                    </div>
+                    
+                    <div id="in-server-list" class="max-h-[500px] overflow-y-auto">
+                        <div class="p-8 text-center">
+                            <svg class="w-8 h-8 text-accent animate-spin mx-auto" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Members Left Server -->
+                <div class="border border-white/10 bg-black/40">
+                    <div class="p-6 border-b border-white/10 bg-red-500/5">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"></path>
+                            </svg>
+                            <h3 class="text-xl font-bold text-white">Members Left Server</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-1">Users who verified but left the server - click "Pull Back" to re-add them</p>
+                    </div>
+                    
+                    <div id="left-server-list" class="max-h-[500px] overflow-y-auto">
+                        <div class="p-8 text-center">
+                            <svg class="w-8 h-8 text-accent animate-spin mx-auto" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-black border border-white/20 p-6 max-w-md w-full mx-4">
+            <div class="flex flex-col items-center text-center">
+                <div id="confirm-icon" class="mb-4">
+                    <svg class="w-12 h-12 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 id="confirm-title" class="text-xl font-semibold text-white mb-2"></h3>
+                <p id="confirm-message" class="text-gray-300 mb-6 whitespace-pre-line"></p>
+                <div class="flex gap-3 w-full">
+                    <button id="confirm-no-btn" class="flex-1 px-4 py-2 border border-white/10 text-gray-300 hover:bg-white/5 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirm-yes-btn" class="flex-1 px-4 py-2 bg-accent/20 border border-accent/40 text-accent hover:bg-accent/30 transition-colors font-semibold">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../../components/sidebar.js?v=35"></script>
+    <script src="../../components/permissions.js?v=35"></script>
+    <script>
+        // Initialize sidebar for this page
+        document.addEventListener('DOMContentLoaded', function() {
+            initSidebar('pullback');
+            
+            // Load versioned scripts
+            const scripts = [
+                { src: '../../js/config.js', version: window.SCRIPT_VERSION },
+                { src: '../../js/auth.js', version: window.SCRIPT_VERSION },
+                { src: '../../js/pullback.js', version: window.SCRIPT_VERSION },
+                { src: '../../js/settings.js', version: window.SCRIPT_VERSION }
+            ];
+            
+            scripts.forEach(script => {
+                const s = document.createElement('script');
+                s.src = `${script.src}?v=${script.version}`;
+                document.body.appendChild(s);
+            });
+        });
+    </script>
+</body>
+</html>
