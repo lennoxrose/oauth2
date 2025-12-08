@@ -100,6 +100,12 @@ chmod 600 "$OAUTH_DIR/.env"
 # Configure NGINX
 echo -e "\n${GREEN}[3/3] Configuring NGINX...${NC}"
 
+# Remove default site if it exists
+if [ -f /etc/nginx/sites-enabled/default ]; then
+    echo -e "${YELLOW}Removing default NGINX site...${NC}"
+    rm -f /etc/nginx/sites-enabled/default
+fi
+
 cat > "/etc/nginx/sites-available/$DOMAIN" << 'NGINX_EOF'
 server {
     listen 80;
@@ -158,11 +164,10 @@ NGINX_EOF
 # Replace domain placeholder
 sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" "/etc/nginx/sites-available/$DOMAIN"
 
-# Enable site
+# Enable site (this will create/overwrite the symlink)
 ln -sf "/etc/nginx/sites-available/$DOMAIN" "/etc/nginx/sites-enabled/$DOMAIN"
 
-# Remove default site if it exists
-rm -f /etc/nginx/sites-enabled/default
+echo -e "${GREEN}NGINX configured for domain: $DOMAIN${NC}"
 
 # Test NGINX configuration
 nginx -t
@@ -180,10 +185,93 @@ if [[ $INSTALL_SSL == "y" || $INSTALL_SSL == "Y" ]]; then
         apt install -y certbot python3-certbot-nginx > /dev/null 2>&1
     fi
     
-    # Obtain certificate
+    # Obtain certificate (certbot will modify the nginx config)
     certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$SSL_EMAIL" --redirect > /dev/null 2>&1
     
-    echo -e "${GREEN}SSL certificate installed successfully!${NC}"
+    echo -e "${GREEN}SSL certificate obtained successfully!${NC}"
+    
+    # Now replace the config with the full HTTPS version
+    echo -e "${GREEN}Configuring NGINX with SSL...${NC}"
+    
+    cat > "/etc/nginx/sites-available/$DOMAIN" <<'NGINX_SSL_EOF'
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    server_name DOMAIN_PLACEHOLDER;
+
+    ssl_certificate /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Admin panel
+    location /admin {
+        try_files $uri $uri/ /admin/index.html;
+        
+        location ~ \.php$ {
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+        }
+    }
+
+    # OAuth2 pages
+    location /oauth2 {
+        try_files $uri $uri/ /oauth2/index.html;
+        
+        location ~ \.php$ {
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+        }
+    }
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+    }
+
+    # Deny access to .env files
+    location ~ /\.env {
+        deny all;
+    }
+
+    # PHP processing
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name DOMAIN_PLACEHOLDER;
+    return 301 https://$server_name$request_uri;
+}
+NGINX_SSL_EOF
+
+    # Replace domain placeholders
+    sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" "/etc/nginx/sites-available/$DOMAIN"
+    
+    # Test and reload NGINX
+    nginx -t
+    systemctl reload nginx
+    
+    echo -e "${GREEN}SSL configuration complete!${NC}"
 fi
 
 # Display summary
