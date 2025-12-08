@@ -56,10 +56,8 @@
         </div>
     </main>
     
+    <script src="../js/config.js"></script>
     <script>
-        const ADMIN_USER_ID = '1306175435486400546';
-        const ADMIN_API = 'https://api.lennox-rose.com/v2/oauth2/discord/admin';
-
         async function handleCallback() {
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
@@ -76,6 +74,10 @@
             }
 
             try {
+                // Load configuration
+                const config = await window.getConfig();
+                const ADMIN_API = `${config.API_BASE}/admin`;
+                
                 // Call our PHP backend to exchange code for token
                 console.log('Calling admin API:', ADMIN_API);
                 console.log('Code:', code);

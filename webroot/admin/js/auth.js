@@ -442,7 +442,7 @@ if (session) {
             ? `https://cdn.discordapp.com/avatars/${session.user_id}/${session.avatar}.png`
             : `https://cdn.discordapp.com/embed/avatars/${(parseInt(session.user_id) >> 22) % 6}.png`;
         
-        const isOwner = session.user_id === ADMIN_USER_ID;
+        const isOwner = session.user_id === window.ADMIN_USER_ID;
         
         userInfo.innerHTML = `
             <img src="${avatar}" class="w-10 h-10 border border-white/10" alt="Avatar">

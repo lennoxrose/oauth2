@@ -43,23 +43,58 @@
         </div>
     </main>
     
+    <script src="js/config.js"></script>
     <script>
-        const ADMIN_USER_ID = '1306175435486400546'; // Your Discord ID
-        const CLIENT_ID = '1405238793719517205';
-        const REDIRECT_URI = window.location.origin + '/admin/callback.html';
+        async function initLogin() {
+            try {
+                // Load configuration
+                const config = await window.getConfig();
+                
+                // Fetch bot settings from API to get CLIENT_ID
+                const settingsResponse = await fetch(`${config.API_BASE}/settings`, {
+                    headers: {
+                        'Authorization': `Bearer ${config.API_SECRET}`
+                    }
+                });
+                
+                if (!settingsResponse.ok) {
+                    throw new Error('Failed to load bot settings');
+                }
+                
+                const settingsData = await settingsResponse.json();
+                console.log('Raw settings data:', settingsData);
+                
+                // Settings API returns nested format: { setting_key: { value, type, description } }
+                const CLIENT_ID = settingsData.client_id?.value || settingsData.client_id;
+                const ADMIN_REDIRECT_URI = settingsData.admin_redirect_uri?.value || settingsData.admin_redirect_uri;
+                
+                // Use the stored redirect URI or construct one
+                const REDIRECT_URI = ADMIN_REDIRECT_URI || `https://${window.location.hostname}/admin/callback/`;
+                
+                console.log('Login config:', { CLIENT_ID, REDIRECT_URI });
+                
+                document.getElementById('login-button').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const authUrl = `https://discord.com/oauth2/authorize?` + new URLSearchParams({
+                        client_id: CLIENT_ID,
+                        redirect_uri: REDIRECT_URI,
+                        response_type: 'code',
+                        scope: 'identify'
+                    });
+                    
+                    window.location.href = authUrl;
+                });
+                
+            } catch (error) {
+                console.error('Failed to initialize login:', error);
+                document.getElementById('error-message').innerHTML = '<p class="text-red-400">Configuration error - please contact administrator</p>';
+                document.getElementById('error-message').classList.remove('hidden');
+            }
+        }
         
-        document.getElementById('login-button').addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            const authUrl = `https://discord.com/oauth2/authorize?` + new URLSearchParams({
-                client_id: CLIENT_ID,
-                redirect_uri: REDIRECT_URI,
-                response_type: 'code',
-                scope: 'identify'
-            });
-            
-            window.location.href = authUrl;
-        });
+        // Initialize login
+        initLogin();
         
         // Check if already logged in
         const session = localStorage.getItem('admin_session');
