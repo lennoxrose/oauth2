@@ -60,6 +60,17 @@ if ! command -v nginx &> /dev/null; then
     apt install -y nginx > /dev/null 2>&1
 fi
 
+# Check if PHP is installed
+if ! command -v php &> /dev/null; then
+    echo -e "\n${GREEN}Installing PHP 8.3...${NC}"
+    apt install -y software-properties-common > /dev/null 2>&1
+    add-apt-repository ppa:ondrej/php -y > /dev/null 2>&1
+    apt update > /dev/null 2>&1
+    apt install -y php8.3 php8.3-fpm php8.3-mysql php8.3-mbstring php8.3-xml php8.3-curl > /dev/null 2>&1
+    systemctl start php8.3-fpm
+    systemctl enable php8.3-fpm
+fi
+
 # Deploy panel files
 echo -e "\n${GREEN}[1/3] Deploying admin panel files...${NC}"
 PANEL_DIR="/var/www/html"
@@ -117,25 +128,27 @@ server {
     # Admin panel
     location /admin {
         try_files $uri $uri/ /admin/index.html;
-        
-        location ~ \.php$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            include fastcgi_params;
-        }
+    }
+    
+    # Admin PHP files
+    location ~ ^/admin/.*\.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
     }
 
     # OAuth2 pages
     location /oauth2 {
         try_files $uri $uri/ /oauth2/index.html;
-        
-        location ~ \.php$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            include fastcgi_params;
-        }
+    }
+    
+    # OAuth2 PHP files
+    location ~ ^/oauth2/.*\.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
     }
 
     # Security headers
@@ -153,7 +166,7 @@ server {
         deny all;
     }
 
-    # PHP processing
+    # PHP processing (fallback)
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
@@ -213,25 +226,27 @@ server {
     # Admin panel
     location /admin {
         try_files $uri $uri/ /admin/index.html;
-        
-        location ~ \.php$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            include fastcgi_params;
-        }
+    }
+    
+    # Admin PHP files
+    location ~ ^/admin/.*\.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
     }
 
     # OAuth2 pages
     location /oauth2 {
         try_files $uri $uri/ /oauth2/index.html;
-        
-        location ~ \.php$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            include fastcgi_params;
-        }
+    }
+    
+    # OAuth2 PHP files
+    location ~ ^/oauth2/.*\.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
     }
 
     # Security headers
@@ -249,7 +264,7 @@ server {
         deny all;
     }
 
-    # PHP processing
+    # PHP processing (fallback)
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
