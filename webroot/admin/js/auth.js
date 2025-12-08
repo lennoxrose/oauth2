@@ -406,7 +406,7 @@ function hideUnauthorizedNavItems() {
     if (!userPermissions) return;
     
     const session = checkAuth();
-    const isOwner = session && session.user_id === ADMIN_USER_ID;
+    const isOwner = session && window.ADMIN_USER_ID && session.user_id === window.ADMIN_USER_ID;
     
     // Owner can see everything (unless DEBUG mode)
     if (isOwner && !DEBUG_PERMISSIONS) return;

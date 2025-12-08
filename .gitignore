@@ -21,3 +21,7 @@ Thumbs.db
 .env.secret
 config.xml
 api-nginx-config-personal
+
+# Personal files
+/webroot/index.html
+/webroot/script.js
