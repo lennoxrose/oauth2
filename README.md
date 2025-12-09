@@ -651,6 +651,10 @@ For issues or questions:
 
 ## 🐛 Known Issues & Solutions
 
+### Install Script
+**Issue** The Install Script doesnt work like its supposed to be but only on option 1
+- **Solution** Fix the code (not in work yet)
+
 ### Installation Issues
 
 **Issue:** MySQL authentication errors during installation

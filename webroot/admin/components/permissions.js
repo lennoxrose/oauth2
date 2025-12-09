@@ -29,7 +29,24 @@ const PERMISSIONS_CONFIG = {
         label: 'Server Sync',
         description: 'Manage server synchronization',
         category: 'management',
-        subPermissions: {}
+        subPermissions: {
+            sync_pullback_all: {
+                label: 'Pullback All Users',
+                description: 'Re-add all users who left the server'
+            },
+            sync_cleanup_deauth: {
+                label: 'Remove Deauthorized',
+                description: 'Remove users who revoked OAuth access'
+            },
+            sync_cleanup_all: {
+                label: 'Remove All Verified',
+                description: 'Remove all verified users from database'
+            },
+            sync_delete_all: {
+                label: 'Nuclear Delete',
+                description: 'Delete all data from all tables (dangerous!)'
+            }
+        }
     },
     settings_view: {
         label: 'View Settings',

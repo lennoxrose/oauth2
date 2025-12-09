@@ -119,6 +119,31 @@ async function checkPageAccess() {
     
     // Owner has access to everything (unless DEBUG mode is on)
     if (ADMIN_USER_ID && session.user_id === ADMIN_USER_ID && !DEBUG_PERMISSIONS) {
+        // Set full permissions for owner
+        userPermissions = {
+            dashboard: { enabled: true, subPermissions: {} },
+            users_view: { enabled: true, subPermissions: {} },
+            users_delete: { enabled: true, subPermissions: {} },
+            pullback: { enabled: true, subPermissions: {} },
+            sync: { 
+                enabled: true, 
+                subPermissions: {
+                    sync_pullback_all: true,
+                    sync_cleanup_deauth: true,
+                    sync_cleanup_all: true,
+                    sync_delete_all: true
+                }
+            },
+            settings_view: { 
+                enabled: true, 
+                subPermissions: {
+                    settings_view_token: true,
+                    settings_view_secret: true
+                }
+            },
+            settings_edit: { enabled: true, subPermissions: {} },
+            permissions: { enabled: true, subPermissions: {} }
+        };
         document.body.style.visibility = 'visible';
         return true;
     }
@@ -457,6 +482,10 @@ if (session) {
     (async () => {
         try {
             await checkPageAccess();
+            
+            // Export permissions after they're loaded
+            window.userPermissions = userPermissions;
+            
             hideUnauthorizedNavItems();
             
             // Set up logout button after sidebar is loaded
@@ -478,6 +507,5 @@ if (session) {
 }
 
 // Export for use in other scripts
-window.userPermissions = userPermissions;
 window.checkPageAccess = checkPageAccess;
 window.hasPermission = hasPermission;

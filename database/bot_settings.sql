@@ -16,15 +16,15 @@ CREATE TABLE IF NOT EXISTS `bot_settings` (
 -- IMPORTANT: Replace these values with your actual Discord bot configuration
 INSERT INTO `bot_settings` (`setting_key`, `setting_value`, `setting_type`, `description`) VALUES
 ('token', '', 'token', 'Discord bot token - should be loaded from environment variables'),
+('client_id', '', 'string', 'Discord application client ID'),
+('client_secret', '', 'string', 'Discord application client secret'),
+('prefix', '', 'string', 'Bot command prefix (e.g., !, ;, .)'),
+('owner_id', '', 'id', 'Discord user ID of the bot owner'),
 ('guild_id', '', 'id', 'Discord server (guild) ID where the bot operates'),
+('redirect_uri', '', 'string', 'OAuth2 redirect/callback URI (e.g., https://yourdomain.com/oauth2/callback/)'),
+('web_url', '', 'string', 'Main website URL (e.g., https://yourdomain.com)'),
 ('verified_role_id', '', 'id', 'Role ID assigned to verified users'),
-('unverified_role_id', '', 'id', 'Role ID for unverified users'),
-('welcome_channel_id', '', 'id', 'Channel ID for welcome messages'),
-('log_channel_id', '', 'id', 'Channel ID for logging bot activities'),
-('bot_status', 'online', 'string', 'Bot status message'),
-('auto_verify', '0', 'boolean', 'Enable automatic verification (1=enabled, 0=disabled)'),
-('require_email', '1', 'boolean', 'Require email verification (1=enabled, 0=disabled)'),
-('max_reconnect_attempts', '5', 'number', 'Maximum Discord API reconnection attempts')
+('unverified_role_id', '', 'id', 'Role ID for unverified users')
 ON DUPLICATE KEY UPDATE 
   `setting_value` = VALUES(`setting_value`),
   `description` = VALUES(`description`);

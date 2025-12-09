@@ -17,7 +17,7 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../../style.css" />
 </head>
 <body class="bg-black text-gray-200 antialiased">
     <div class="flex min-h-screen">
@@ -34,6 +34,11 @@
             <div class="p-6">
                 <!-- Action Buttons -->
                 <div class="mb-6 grid grid-cols-1 gap-4">
+                    <button id="pullback-all-btn" class="px-6 py-4 border border-green-500/20 bg-green-500/5 text-green-400 font-semibold hover:bg-green-500/10 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                        <span>Pullback All Users Who Left</span>
+                    </button>
+                    
                     <button id="cleanup-deauth-btn" class="px-6 py-4 border border-accent text-accent font-semibold hover:bg-accent hover:text-black transition-colors flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         <span>Remove Deauthorized Users Only</span>
@@ -112,8 +117,8 @@
         </div>
     </div>
     
-    <script src="../../components/sidebar.js?v=36"></script>
-    <script src="../../components/permissions.js?v=36"></script>
+    <script src="../../components/sidebar.js?v=43"></script>
+    <script src="../../components/permissions.js?v=43"></script>
     <script>
         // Initialize sidebar for this page
         document.addEventListener('DOMContentLoaded', function() {

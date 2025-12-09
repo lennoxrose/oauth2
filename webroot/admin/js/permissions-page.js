@@ -41,9 +41,21 @@ async function loadVerifiedUsers() {
 
         if (!response.ok) throw new Error('Failed to fetch users');
 
-        allVerifiedUsers = await response.json();
+        const data = await response.json();
+        console.log('Verified users API response:', data);
+        
+        // API returns { success: true, users: [...] }
+        // Map user_id to discord_id for consistency
+        allVerifiedUsers = (data.users || []).map(user => ({
+            ...user,
+            discord_id: user.user_id || user.discord_id,
+            avatar: user.avatar || null
+        }));
+        
+        console.log('Loaded verified users:', allVerifiedUsers.length);
     } catch (error) {
         console.error('Error loading verified users:', error);
+        allVerifiedUsers = []; // Ensure it's always an array
     }
 }
 
@@ -71,44 +83,31 @@ function renderPermissionsTable(permissions) {
         const avatar = user.avatar 
             ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` 
             : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discord_id) % 5}.png`;
+        
+        const checkIcon = '<svg class="w-6 h-6 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        const xIcon = '<svg class="w-6 h-6 text-gray-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
 
         return `
             <tr class="hover:bg-white/5 transition-colors">
                 <td class="px-6 py-4">
                     <div class="flex items-center gap-3">
-                        <img src="${avatar}" alt="${user.username}" class="w-10 h-10 rounded-full">
+                        <img src="${avatar}" alt="${user.username}" class="w-10 h-10 border border-white/20">
                         <div>
                             <div class="font-medium text-white">${user.username}</div>
                             <div class="text-sm text-gray-400">${user.discord_id}</div>
                         </div>
                     </div>
                 </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.dashboard?.enabled)}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.users_view?.enabled)}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.users_delete?.enabled)}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.pullback?.enabled)}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.sync?.enabled)}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.settings_view?.enabled)}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.settings_edit?.enabled)}
-                </td>
-                <td class="px-6 py-4 text-center">
-                    ${renderPermissionBadge(perms.permissions?.enabled)}
-                </td>
+                <td class="px-4 py-4 text-center">${perms.dashboard?.enabled ? checkIcon : xIcon}</td>
+                <td class="px-4 py-4 text-center">${perms.users_view?.enabled ? checkIcon : xIcon}</td>
+                <td class="px-4 py-4 text-center">${perms.users_delete?.enabled ? checkIcon : xIcon}</td>
+                <td class="px-4 py-4 text-center">${perms.pullback?.enabled ? checkIcon : xIcon}</td>
+                <td class="px-4 py-4 text-center">${perms.sync?.enabled ? checkIcon : xIcon}</td>
+                <td class="px-4 py-4 text-center">${perms.settings_view?.enabled ? checkIcon : xIcon}</td>
+                <td class="px-4 py-4 text-center">${perms.settings_edit?.enabled ? checkIcon : xIcon}</td>
+                <td class="px-4 py-4 text-center">${perms.permissions?.enabled ? checkIcon : xIcon}</td>
                 <td class="px-6 py-4">
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 justify-end">
                         <button onclick="editPermissions('${user.discord_id}')" class="px-3 py-1 border border-accent/40 text-accent hover:bg-accent/10 transition-colors text-sm">
                             Edit
                         </button>
@@ -123,21 +122,6 @@ function renderPermissionsTable(permissions) {
 }
 
 // Render permission badge
-function renderPermissionBadge(hasPermission) {
-    if (hasPermission) {
-        return `
-            <svg class="w-5 h-5 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-        `;
-    }
-    return `
-        <svg class="w-5 h-5 text-gray-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-    `;
-}
-
 // Edit permissions
 async function editPermissions(discordId) {
     try {
@@ -164,7 +148,7 @@ async function editPermissions(discordId) {
 
         document.getElementById('edit-user-info').innerHTML = `
             <div class="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded">
-                <img src="${avatar}" alt="${userData.username}" class="w-12 h-12 rounded-full">
+                <img src="${avatar}" alt="${userData.username}" class="w-12 h-12 border border-white/20">
                 <div>
                     <div class="font-medium text-white">${userData.username}</div>
                     <div class="text-sm text-gray-400">${userData.discord_id}</div>
@@ -297,41 +281,63 @@ function handleUserSearch() {
             return;
         }
 
-        const matches = allVerifiedUsers.filter(user => 
-            user.username.toLowerCase().includes(query) || 
-            user.discord_id.includes(query)
-        ).slice(0, 10); // Limit to 10 results
-
-        if (matches.length === 0) {
+        // Ensure allVerifiedUsers is an array
+        if (!Array.isArray(allVerifiedUsers) || allVerifiedUsers.length === 0) {
+            console.warn('allVerifiedUsers is not ready:', allVerifiedUsers);
             resultsContainer.innerHTML = `
                 <div class="p-4 text-center text-gray-400">
-                    No users found matching "${query}"
+                    ${!Array.isArray(allVerifiedUsers) ? 'Loading users...' : 'No verified users available'}
                 </div>
             `;
             resultsContainer.classList.remove('hidden');
             return;
         }
 
-        resultsContainer.innerHTML = matches.map(user => {
-            const avatar = user.avatar 
-                ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` 
-                : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discord_id) % 5}.png`;
+        try {
+            const matches = allVerifiedUsers.filter(user => 
+                user.username.toLowerCase().includes(query) || 
+                user.discord_id.includes(query)
+            ).slice(0, 10); // Limit to 10 results
 
-            return `
-                <div class="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/10 last:border-b-0" onclick="addAdmin('${user.discord_id}')">
-                    <img src="${avatar}" alt="${user.username}" class="w-10 h-10 rounded-full">
-                    <div class="flex-1">
-                        <div class="font-medium text-white">${user.username}</div>
-                        <div class="text-sm text-gray-400">${user.discord_id}</div>
+            if (matches.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="p-4 text-center text-gray-400">
+                        No users found matching "${query}"
                     </div>
-                    <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
+                `;
+                resultsContainer.classList.remove('hidden');
+                return;
+            }
+
+            resultsContainer.innerHTML = matches.map(user => {
+                const avatar = user.avatar 
+                    ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` 
+                    : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discord_id) % 5}.png`;
+
+                return `
+                    <div class="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/10 last:border-b-0" onclick="addAdmin('${user.discord_id}')">
+                        <img src="${avatar}" alt="${user.username}" class="w-10 h-10 rounded-full">
+                        <div class="flex-1">
+                            <div class="font-medium text-white">${user.username}</div>
+                            <div class="text-sm text-gray-400">${user.discord_id}</div>
+                        </div>
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                `;
+            }).join('');
+
+            resultsContainer.classList.remove('hidden');
+        } catch (error) {
+            console.error('Error in search:', error);
+            resultsContainer.innerHTML = `
+                <div class="p-4 text-center text-gray-400">
+                    Error searching users
                 </div>
             `;
-        }).join('');
-
-        resultsContainer.classList.remove('hidden');
+            resultsContainer.classList.remove('hidden');
+        }
     });
 
     // Close search results when clicking outside
@@ -409,15 +415,17 @@ async function initPermissions() {
     console.log('[DEBUG] initPermissions() called');
     // Wait for API_SECRET to be loaded
     let attempts = 0;
-    const checkConfig = setInterval(() => {
+    const checkConfig = setInterval(async () => {
         attempts++;
         console.log(`[DEBUG] Waiting for window.API_SECRET... attempt ${attempts}`);
         if (window.API_SECRET) {
             console.log('[DEBUG] window.API_SECRET loaded! Initializing permissions page...');
             clearInterval(checkConfig);
-            loadPermissions();
-            loadVerifiedUsers();
-            handleUserSearch();
+            
+            // Load data first, then set up search
+            await loadPermissions();
+            await loadVerifiedUsers();
+            handleUserSearch(); // Set up search after users are loaded
         }
         if (attempts > 50) {
             console.error('[ERROR] Timeout waiting for window.API_SECRET');

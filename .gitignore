@@ -21,6 +21,7 @@ Thumbs.db
 .env.secret
 config.xml
 api-nginx-config-personal
+/database/migrations/private
 
 # Personal files
 /webroot/index.html

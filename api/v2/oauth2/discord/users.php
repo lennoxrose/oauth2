@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     } else {
         // List all verified users (without access tokens for security)
         try {
-            $stmt = $pdo->query("SELECT user_id, username, discriminator, email, verified_at FROM discord_verified_users ORDER BY verified_at DESC");
+            $stmt = $pdo->query("SELECT user_id, username, discriminator, avatar, email, verified_at FROM discord_verified_users ORDER BY verified_at DESC");
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             echo json_encode([

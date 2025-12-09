@@ -1,10 +1,80 @@
-// Sync page functionality
+// Server Sync page functionality with permission checks
+console.log('[DEBUG] sync.js loaded!');
+
+const pullbackAllBtn = document.getElementById('pullback-all-btn');
 const cleanupDeauthBtn = document.getElementById('cleanup-deauth-btn');
 const cleanupAllBtn = document.getElementById('cleanup-all-btn');
 const deleteAllBtn = document.getElementById('delete-all-btn');
 const resultsDiv = document.getElementById('results');
 const resultsContent = document.getElementById('results-content');
 const loadingDiv = document.getElementById('loading');
+
+// Initialize function with permission checks
+async function initSync() {
+    console.log('[DEBUG] initSync() called');
+    
+    // Wait for permissions to load
+    let attempts = 0;
+    while (!window.userPermissions && attempts < 50) {
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    if (!window.userPermissions) {
+        console.error('[ERROR] Failed to load user permissions');
+        return;
+    }
+    
+    console.log('[DEBUG] Permissions loaded, setting up sync page');
+    setupEventListeners();
+}
+
+// Setup event listeners with permission checks
+function setupEventListeners() {
+    // Check and setup pullback all button
+    if (hasSubPermission('sync', 'sync_pullback_all')) {
+        pullbackAllBtn.addEventListener('click', handlePullbackAll);
+    } else {
+        pullbackAllBtn.disabled = true;
+        pullbackAllBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        pullbackAllBtn.title = 'You do not have permission for this action';
+    }
+    
+    // Check and setup cleanup deauth button
+    if (hasSubPermission('sync', 'sync_cleanup_deauth')) {
+        cleanupDeauthBtn.addEventListener('click', handleCleanupDeauth);
+    } else {
+        cleanupDeauthBtn.disabled = true;
+        cleanupDeauthBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        cleanupDeauthBtn.title = 'You do not have permission for this action';
+    }
+    
+    // Check and setup cleanup all button
+    if (hasSubPermission('sync', 'sync_cleanup_all')) {
+        cleanupAllBtn.addEventListener('click', handleCleanupAll);
+    } else {
+        cleanupAllBtn.disabled = true;
+        cleanupAllBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        cleanupAllBtn.title = 'You do not have permission for this action';
+    }
+    
+    // Check and setup delete all button
+    if (hasSubPermission('sync', 'sync_delete_all')) {
+        deleteAllBtn.addEventListener('click', handleDeleteAll);
+    } else {
+        deleteAllBtn.disabled = true;
+        deleteAllBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        deleteAllBtn.title = 'You do not have permission for this action';
+    }
+}
+
+// Helper to check sub-permissions
+function hasSubPermission(mainPerm, subPerm) {
+    if (!window.userPermissions) return false;
+    const perm = window.userPermissions[mainPerm];
+    if (!perm || !perm.enabled) return false;
+    return perm.subPermissions?.[subPerm] === true;
+}
 
 // Custom modal functions
 function showConfirmModal(title, message, icon = 'warning') {
@@ -115,8 +185,89 @@ function showInputModal(title, message, placeholder, expectedValue) {
     });
 }
 
+// Action Handlers
+
+// Pullback All Users Who Left
+async function handlePullbackAll() {
+    const confirmed = await showConfirmModal(
+        'Pullback All Users',
+        'This will re-add all verified users who have left the server. This may take some time. Continue?',
+        'info'
+    );
+    
+    if (!confirmed) return;
+    
+    showLoading();
+    
+    try {
+        const config = await window.getConfig();
+        
+        // First, get list of users who left
+        const pullbackData = await fetch(`${config.API_BASE}/pullback`, {
+            headers: {
+                'Authorization': `Bearer ${config.API_SECRET}`
+            }
+        });
+        
+        if (!pullbackData.ok) throw new Error('Failed to fetch pullback data');
+        
+        const data = await pullbackData.json();
+        const leftUsers = data.left_server || [];
+        
+        if (leftUsers.length === 0) {
+            showResults({ pulled_back: 0 }, 'No users to pull back');
+            return;
+        }
+        
+        // Pull back each user
+        let successCount = 0;
+        let failedCount = 0;
+        const errors = [];
+        
+        for (const user of leftUsers) {
+            try {
+                const response = await fetch(`${config.API_BASE}/pullback`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${config.API_SECRET}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: user.user_id,
+                        action: 'invite'
+                    })
+                });
+                
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    failedCount++;
+                    const errorData = await response.json();
+                    errors.push(`${user.username}: ${errorData.error}`);
+                }
+            } catch (error) {
+                failedCount++;
+                errors.push(`${user.username}: ${error.message}`);
+            }
+            
+            // Small delay to avoid rate limits
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        showResults({
+            success_count: successCount,
+            failed_count: failedCount,
+            errors: errors.length > 0 ? errors : null
+        }, 'Pullback completed');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showError(error.message);
+    }
+}
+
 // Handle Cleanup Deauthorized Users Only
-cleanupDeauthBtn.addEventListener('click', async () => {
+async function handleCleanupDeauth() {
     const confirmed = await showConfirmModal(
         'Remove Deauthorized Users',
         'This will remove users who have deauthorized the application. Continue?',
@@ -148,25 +299,29 @@ cleanupDeauthBtn.addEventListener('click', async () => {
         console.error('Error:', error);
         showError(error.message);
     }
-});
+}
 
 // Handle Cleanup All Verified Users
-cleanupAllBtn.addEventListener('click', async () => {
+async function handleCleanupAll() {
     const confirmed1 = await showConfirmModal(
         'Remove ALL Verified Users',
-        'This will remove ALL verified users from the database. This action cannot be undone. Continue?',
-        'warning'
+        'This will remove ALL verified users from the database. This cannot be undone. Are you absolutely sure?',
+        'danger'
     );
     
     if (!confirmed1) return;
     
-    const confirmed2 = await showConfirmModal(
-        'FINAL WARNING',
-        'You are about to delete ALL verified users. Are you absolutely sure?',
-        'danger'
+    const inputValue = await showInputModal(
+        'Confirm Dangerous Action',
+        'Type "DELETE ALL USERS" to confirm this action:',
+        'DELETE ALL USERS',
+        'DELETE ALL USERS'
     );
     
-    if (!confirmed2) return;
+    if (inputValue !== 'DELETE ALL USERS') {
+        showError('Action cancelled - confirmation text did not match');
+        return;
+    }
     
     showLoading();
     
@@ -183,7 +338,7 @@ cleanupAllBtn.addEventListener('click', async () => {
         const data = await response.json();
         
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to remove all users');
+            throw new Error(data.error || 'Failed to cleanup all users');
         }
         
         showResults(data, 'All users removed');
@@ -191,31 +346,49 @@ cleanupAllBtn.addEventListener('click', async () => {
         console.error('Error:', error);
         showError(error.message);
     }
-});
+}
 
-// Handle Nuclear Delete Everything
-deleteAllBtn.addEventListener('click', async () => {
-    const confirmText = await showInputModal(
-        'NUCLEAR OPTION',
-        'This will DELETE EVERYTHING from the database. Type "DELETE EVERYTHING" to confirm:',
-        'Type DELETE EVERYTHING',
-        'DELETE EVERYTHING'
-    );
-    
-    if (confirmText !== 'DELETE EVERYTHING') {
-        if (confirmText !== null) {
-            await showConfirmModal('Cancelled', 'Deletion cancelled - confirmation text did not match', 'info');
-        }
-        return;
-    }
-    
-    const finalConfirm = await showConfirmModal(
-        'ABSOLUTELY FINAL WARNING',
-        'You are about to PERMANENTLY DELETE ALL DATA. Continue?',
+// Nuclear Delete Everything
+async function handleDeleteAll() {
+    const confirmed1 = await showConfirmModal(
+        '⚠️ NUCLEAR OPTION ⚠️',
+        'This will DELETE EVERYTHING from ALL tables. This includes verified users, pending assignments, admin permissions, and bot settings. This is IRREVERSIBLE. Are you absolutely certain?',
         'danger'
     );
     
-    if (!finalConfirm) return;
+    if (!confirmed1) return;
+    
+    const inputValue1 = await showInputModal(
+        'First Confirmation',
+        'Type "I UNDERSTAND THE RISK" to continue:',
+        'I UNDERSTAND THE RISK',
+        'I UNDERSTAND THE RISK'
+    );
+    
+    if (inputValue1 !== 'I UNDERSTAND THE RISK') {
+        showError('Action cancelled - confirmation text did not match');
+        return;
+    }
+    
+    const confirmed2 = await showConfirmModal(
+        'Final Confirmation',
+        'This is your LAST CHANCE to cancel. Deleting all data cannot be undone. Continue?',
+        'danger'
+    );
+    
+    if (!confirmed2) return;
+    
+    const inputValue2 = await showInputModal(
+        'FINAL CONFIRMATION',
+        'Type "DELETE EVERYTHING NOW" to execute:',
+        'DELETE EVERYTHING NOW',
+        'DELETE EVERYTHING NOW'
+    );
+    
+    if (inputValue2 !== 'DELETE EVERYTHING NOW') {
+        showError('Action cancelled - confirmation text did not match');
+        return;
+    }
     
     showLoading();
     
@@ -232,69 +405,67 @@ deleteAllBtn.addEventListener('click', async () => {
         const data = await response.json();
         
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to delete users');
+            throw new Error(data.error || 'Failed to delete all data');
         }
         
-        showResults(data, 'Nuclear option executed');
+        showResults(data, 'All data deleted');
+        
+        // Logout after 5 seconds since permissions are deleted
+        setTimeout(() => {
+            alert('All data has been deleted. You will be logged out now.');
+            window.location.href = '/admin/';
+        }, 5000);
     } catch (error) {
         console.error('Error:', error);
         showError(error.message);
     }
-});
-
-function showLoading() {
-    resultsDiv.classList.add('hidden');
-    loadingDiv.classList.remove('hidden');
 }
 
-function showResults(data, actionMessage) {
+// UI Helper Functions
+function showLoading() {
+    loadingDiv.classList.remove('hidden');
+    resultsDiv.classList.add('hidden');
+}
+
+function showResults(data, title) {
     loadingDiv.classList.add('hidden');
     resultsDiv.classList.remove('hidden');
     
-    if (data.success) {
-        let html = `
-            <div class="bg-green-500/10 border border-green-500/20 p-4 mb-4">
-                <p class="text-green-400 font-semibold">${actionMessage || data.message}</p>
+    let html = `<div class="space-y-4">`;
+    
+    if (data.deleted || data.removed || data.deleted_count) {
+        html += `
+            <div class="border border-green-500/20 bg-green-500/5 p-4">
+                <p class="text-green-400 font-semibold">${title}</p>
+                <p class="text-gray-300 mt-2">Removed: ${data.deleted || data.removed || data.deleted_count} users</p>
             </div>
         `;
-        
-        if (data.deleted_count !== undefined) {
-            html += `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="border border-white/10 p-4">
-                        <div class="text-3xl font-bold text-accent mb-1">${data.deleted_count}</div>
-                        <div class="text-sm text-gray-400">Users Removed</div>
-                    </div>
-                    <div class="border border-white/10 p-4">
-                        <div class="text-3xl font-bold text-white mb-1">${data.remaining_count || 0}</div>
-                        <div class="text-sm text-gray-400">Users Remaining</div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        if (data.deleted_users && data.deleted_users.length > 0) {
-            html += `
-                <div class="mt-4">
-                    <h4 class="text-white font-semibold mb-2">Removed Users:</h4>
-                    <div class="space-y-2">
-                        ${data.deleted_users.map(user => `
-                            <div class="border border-white/10 p-3 flex items-center gap-3">
-                                <div class="text-sm">
-                                    <span class="text-white">${user.username || 'Unknown'}#${user.discriminator || '0000'}</span>
-                                    <span class="text-gray-400 ml-2">(${user.user_id})</span>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        resultsContent.innerHTML = html;
-    } else {
-        showError(data.error || 'Operation failed');
     }
+    
+    if (data.pulled_back || data.success_count) {
+        html += `
+            <div class="border border-green-500/20 bg-green-500/5 p-4">
+                <p class="text-green-400 font-semibold">${title}</p>
+                <p class="text-gray-300 mt-2">Successfully pulled back: ${data.pulled_back || data.success_count} users</p>
+                ${data.failed_count ? `<p class="text-yellow-400 mt-1">Failed: ${data.failed_count} users</p>` : ''}
+            </div>
+        `;
+    }
+    
+    if (data.errors && data.errors.length > 0) {
+        html += `
+            <div class="border border-red-500/20 bg-red-500/5 p-4">
+                <p class="text-red-400 font-semibold">Errors:</p>
+                <ul class="list-disc list-inside text-gray-300 mt-2">
+                    ${data.errors.map(err => `<li>${err}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+    
+    html += `</div>`;
+    
+    resultsContent.innerHTML = html;
 }
 
 function showError(message) {
@@ -302,8 +473,16 @@ function showError(message) {
     resultsDiv.classList.remove('hidden');
     
     resultsContent.innerHTML = `
-        <div class="bg-red-500/10 border border-red-500/20 p-4">
-            <p class="text-red-400 font-semibold">${message}</p>
+        <div class="border border-red-500/20 bg-red-500/5 p-4">
+            <p class="text-red-400 font-semibold">Error</p>
+            <p class="text-gray-300 mt-2">${message}</p>
         </div>
     `;
+}
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSync);
+} else {
+    initSync();
 }
