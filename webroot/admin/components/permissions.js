@@ -285,10 +285,15 @@ function initCustomCheckboxes() {
     
     // Handle parent-child permission relationships
     document.querySelectorAll('.permission-checkbox:not(.sub-permission)').forEach(checkbox => {
+        const permKey = checkbox.name;
+        const subContainer = document.getElementById(`sub-${permKey}`);
+        
+        // Initialize visibility based on current state
+        if (subContainer) {
+            subContainer.style.display = checkbox.checked ? 'block' : 'none';
+        }
+        
         checkbox.addEventListener('change', function() {
-            const permKey = this.name;
-            const subContainer = document.getElementById(`sub-${permKey}`);
-            
             if (subContainer) {
                 if (this.checked) {
                     subContainer.style.display = 'block';

@@ -179,6 +179,9 @@ async function savePermissions() {
     try {
         const permissions = window.PermissionsManager.getSelectedPermissions();
 
+        console.log('Saving permissions for user:', currentEditingUserId);
+        console.log('Permissions object:', JSON.stringify(permissions, null, 2));
+
         const response = await fetch(`${API_BASE}/permissions/${currentEditingUserId}`, {
             method: 'PUT',
             headers: {

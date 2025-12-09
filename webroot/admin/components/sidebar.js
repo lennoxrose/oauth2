@@ -1,5 +1,5 @@
 // Centralized sidebar management and version control
-const SCRIPT_VERSION = 45; // Update this single number to cache-bust all JS files
+const SCRIPT_VERSION = 46; // Update this single number to cache-bust all JS files
 
 // Sidebar configuration
 const SIDEBAR_PAGES = [
