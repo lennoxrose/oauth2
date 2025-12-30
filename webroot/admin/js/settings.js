@@ -338,5 +338,5 @@ function togglePasswordVisibility(fieldId) {
 function logout() {
     localStorage.clear();
     sessionStorage.clear();
-    window.location.href = '../login.html';
+    window.location.href = '/admin/index.html';
 }

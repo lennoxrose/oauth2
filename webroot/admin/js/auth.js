@@ -423,7 +423,7 @@ function hideSecretButton() {
 
 function logout() {
     localStorage.removeItem('admin_session');
-    window.location.href = '/admin/';
+    window.location.href = '/admin/index.html';
 }
 
 // Hide navigation items based on permissions

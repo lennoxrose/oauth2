@@ -95,6 +95,18 @@ server {
         fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/pullback.php;
     }
 
+    location ~ ^/v2/oauth2/discord/embeds(/.*)?$ {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/embeds.php;
+    }
+
+    location ~ ^/v2/oauth2/discord/emojis(/.*)?$ {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        include fastcgi.conf;
+        fastcgi_param SCRIPT_FILENAME ${document_root}/v2/oauth2/discord/emojis.php;
+    }
+
     ##
     ## Default PHP Handler
     ##
