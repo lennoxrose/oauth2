@@ -26,3 +26,6 @@ api-nginx-config-personal
 # Personal files
 /webroot/index.html
 /webroot/script.js
+
+# Removed Files
+/guides/.ignore.md

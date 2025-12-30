@@ -20,6 +20,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Banner
+echo -e "${RED} WARNING THE INSTALLERS MIGHT BE BROKEN. MANUEL INSTALLATION IS RECOMMENDED. PROCEDE WITH CAUTION ${NC}\n"
 echo -e "${BLUE}
    ▄████▄ ▄████▄ ▄▄ ▄▄ ▄▄▄▄▄▄ ▄▄ ▄▄ ████▄ 
    ██  ██ ██▄▄██ ██ ██   ██   ██▄██  ▄██▀ 
