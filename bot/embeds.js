@@ -59,78 +59,6 @@ module.exports = {
   },
 
   /**
-   * Simple auth link embed
-   * @param {string} webUrl - The verification URL
-   * @returns {Object} - Embed object
-   */
-  authLink(webUrl) {
-    return {
-      color: this.colors.primary,
-      title: `${emojis.secure} Discord Verification`,
-      description: 'Click the link below to verify your Discord account:',
-      fields: [
-        {
-          name: `${emojis.network} Verification Link`,
-          value: `[Click here to verify](${webUrl})`,
-          inline: false
-        },
-        {
-          name: `${emojis.info} What happens?`,
-          value: '• You\'ll login with Discord\n• We\'ll save your user info\n• You can be pulled back to servers',
-          inline: false
-        }
-      ],
-      footer: {
-        text: 'Your data is stored securely'
-      },
-      timestamp: new Date().toISOString()
-    };
-  },
-
-  /**
-   * Verified users list embed
-   * @param {Array} users - Array of user objects
-   * @returns {Object} - Embed object
-   */
-  verifiedUsersList(users) {
-    return {
-      color: this.colors.primary,
-      title: `${emojis.folder} Verified Users`,
-      description: `Total: ${users.length} users`,
-      fields: users.slice(0, 25).map(u => ({
-        name: `${emojis.member} ${u.username}${u.discriminator !== '0' ? '#' + u.discriminator : ''}`,
-        value: `ID: ${u.user_id}\nVerified: <t:${Math.floor(u.verified_at / 1000)}:R>`,
-        inline: true
-      })),
-      footer: {
-        text: users.length > 25 ? 'Showing first 25 users' : ''
-      }
-    };
-  },
-
-  /**
-   * Pullback results embed
-   * @param {number} success - Number of successful pulls
-   * @param {number} failed - Number of failed pulls
-   * @param {number} alreadyIn - Number of users already in server
-   * @returns {Object} - Embed object
-   */
-  pullbackResults(success, failed, alreadyIn) {
-    return {
-      color: success > 0 ? this.colors.success : this.colors.error,
-      title: `${emojis.folder} Pullback Results`,
-      fields: [
-        { name: `${emojis.confirm} Successfully Added`, value: success.toString(), inline: true },
-        { name: `${emojis.cancel} Failed`, value: failed.toString(), inline: true },
-        { name: `${emojis.member} Already in Server`, value: alreadyIn.toString(), inline: true }
-      ],
-      footer: {
-        text: 'Note: Failed users may have expired tokens or left Discord'
-      }
-    };
-  },
-
-  /**
    * Error embed
    * @param {string} title - Error title
    * @param {string} description - Error description
@@ -168,20 +96,6 @@ module.exports = {
     return new EmbedBuilder()
       .setColor(this.colors.info)
       .setTitle(`${emojis.info} ${title}`)
-      .setDescription(description)
-      .setTimestamp();
-  },
-
-  /**
-   * Warning embed
-   * @param {string} title - Warning title
-   * @param {string} description - Warning description
-   * @returns {EmbedBuilder}
-   */
-  warning(title, description) {
-    return new EmbedBuilder()
-      .setColor(this.colors.warning)
-      .setTitle(`${emojis.warn} ${title}`)
       .setDescription(description)
       .setTimestamp();
   }

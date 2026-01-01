@@ -5,6 +5,7 @@ const path = require('path');
 const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
 const ConfigLoader = require('./config-loader');
 const embeds = require('./embeds');
+const embedLoader = require('./embed-loader');
 const axios = require('axios');
 
 let config;
@@ -13,7 +14,7 @@ let config;
 async function checkPendingRoleAssignments(client, config) {
     try {
         // Get pending role assignments from API
-        const response = await axios.get('https://api.lennox-rose.com/v2/oauth2/discord/pending-roles', {
+        const response = await axios.get(`${config.api_base_url}/pending-roles`, {
             headers: {
                 'Authorization': `Bearer ${config.token}`
             }
@@ -84,6 +85,13 @@ async function checkPendingRoleAssignments(client, config) {
         config = await configLoader.load();
         
         console.log('[INFO    ] Config loaded from API');
+        
+        // Initialize embed loader with API configuration
+        embedLoader.initDatabase({
+            api_base: config.api_base_url,
+            api_secret: config.api_secret
+        });
+        console.log('[INFO    ] Embed loader initialized');
         
         // Validate required config
         if (!config.token || config.token === 'YOUR_BOT_TOKEN_HERE') {
@@ -177,7 +185,7 @@ async function checkPendingRoleAssignments(client, config) {
             console.log(`[INFO    ] Executing command: ${command.name} by ${message.author.tag}`);
 
             try {
-                await command.execute(message, args, { client, prefix: config.prefix, config, commands });
+                await command.execute(message, args, { client, prefix: config.prefix, config, commands, embedLoader });
             } catch (err) {
                 console.error(`[ERROR   ] Error in command ${command.name}:`, err);
                 try {

@@ -1,8 +1,5 @@
 // Embed Editor Page JavaScript
 
-const API_BASE = window.API_BASE || '/api/v2/oauth2/discord';
-const API_SECRET = window.API_SECRET || '';
-
 let embeds = [];
 let emojis = [];
 let currentEmbed = null;
@@ -10,9 +7,9 @@ let currentEmbed = null;
 // Load all embeds
 async function loadEmbeds() {
     try {
-        const response = await fetch(`${API_BASE}/embeds`, {
+        const response = await fetch(`${window.API_BASE}/embeds`, {
             headers: {
-                'Authorization': `Bearer ${API_SECRET}`
+                'Authorization': `Bearer ${window.API_SECRET}`
             }
         });
         
@@ -28,9 +25,9 @@ async function loadEmbeds() {
 // Load all emojis
 async function loadEmojis() {
     try {
-        const response = await fetch(`${API_BASE}/emojis`, {
+        const response = await fetch(`${window.API_BASE}/emojis`, {
             headers: {
-                'Authorization': `Bearer ${API_SECRET}`
+                'Authorization': `Bearer ${window.API_SECRET}`
             }
         });
         
@@ -55,17 +52,12 @@ function renderEmbedsList() {
     }
     
     container.innerHTML = embeds.map(embed => `
-        <div class="border border-white/10 bg-black/40 p-4 hover:border-accent/30 transition-colors cursor-pointer group" onclick="selectEmbed(${embed.id})">
+        <div class="border border-white/10 bg-black/40 p-4 hover:border-accent/30 transition-colors cursor-pointer" onclick="selectEmbed(${embed.id})">
             <div class="flex items-start justify-between mb-2">
                 <div class="flex-1">
                     <h3 class="font-semibold text-white mb-1">${escapeHtml(embed.name)}</h3>
                     <p class="text-xs text-gray-400">Created ${new Date(embed.created_at).toLocaleDateString()}</p>
                 </div>
-                <button onclick="event.stopPropagation(); deleteEmbed(${embed.id}, '${escapeHtml(embed.name)}')" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-opacity">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>
             </div>
             ${embed.description ? `<p class="text-sm text-gray-300 line-clamp-2">${escapeHtml(embed.description.substring(0, 100))}</p>` : ''}
         </div>
@@ -421,13 +413,13 @@ async function saveEmbed() {
     
     const id = currentEmbed.id;
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `${API_BASE}/embeds/${id}` : `${API_BASE}/embeds`;
+    const url = id ? `${window.API_BASE}/embeds/${id}` : `${window.API_BASE}/embeds`;
     
     try {
         const response = await fetch(url, {
             method,
             headers: {
-                'Authorization': `Bearer ${API_SECRET}`,
+                'Authorization': `Bearer ${window.API_SECRET}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(currentEmbed)
@@ -454,10 +446,10 @@ async function deleteEmbed(id, name) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/embeds/${id}`, {
+        const response = await fetch(`${window.API_BASE}/embeds/${id}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${API_SECRET}`
+                'Authorization': `Bearer ${window.API_SECRET}`
             }
         });
         
@@ -521,7 +513,14 @@ function showAlert(title, message, type = 'info') {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+function initEmbedsPage() {
+    // Wait for config to be loaded
+    if (!window.API_BASE || !window.API_SECRET) {
+        console.log('Waiting for config to load...');
+        setTimeout(initEmbedsPage, 50);
+        return;
+    }
+    
     loadEmbeds();
     loadEmojis();
     
@@ -547,4 +546,11 @@ document.addEventListener('DOMContentLoaded', () => {
             closeEmojiPicker();
         }
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmbedsPage);
+} else {
+    // DOM already loaded, run immediately
+    initEmbedsPage();
+}

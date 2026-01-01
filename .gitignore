@@ -26,6 +26,11 @@ api-nginx-config-personal
 # Personal files
 /webroot/index.html
 /webroot/script.js
+/webroot/discord/theme/vencord.css
 
 # Removed Files
 /guides/.ignore.md
+
+# Broken/Incomplete Files
+/installers/
+install.sh

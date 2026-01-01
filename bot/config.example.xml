@@ -1,4 +1,6 @@
 <config>
-  <!--                Example Key                      -->
+  <!--                Example Config                      -->
   <api_secret>ApiSecretKey0878867869786796897</api_secret>
+  <web_url>https://example.com</web_url>
+  <api_base_url>https://api.example.com/v2/oauth2/discord</api_base_url>
 </config>

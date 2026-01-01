@@ -1,16 +1,13 @@
 // Emoji Management Page JavaScript
 
-const API_BASE = window.API_BASE || '/api/v2/oauth2/discord';
-const API_SECRET = window.API_SECRET || '';
-
 let emojis = [];
 
 // Load all emojis
 async function loadEmojis() {
     try {
-        const response = await fetch(`${API_BASE}/emojis`, {
+        const response = await fetch(`${window.API_BASE}/emojis`, {
             headers: {
-                'Authorization': `Bearer ${API_SECRET}`
+                'Authorization': `Bearer ${window.API_SECRET}`
             }
         });
         
@@ -93,13 +90,21 @@ async function editEmoji(id) {
     const emoji = emojis.find(e => e.id === id);
     if (!emoji) return;
     
-    document.getElementById('modal-title').textContent = 'Edit Emoji';
-    document.getElementById('emoji-id').value = emoji.id;
-    document.getElementById('emoji-name').value = emoji.name;
-    document.getElementById('emoji-hash').value = emoji.hash;
-    document.getElementById('emoji-animated').checked = emoji.animated;
-    
-    document.getElementById('emoji-modal').classList.remove('hidden');
+    // Show confirmation
+    showConfirmModal(
+        'Edit Emoji',
+        `Are you sure you want to edit ":${emoji.name}:"?`,
+        'Edit',
+        () => {
+            document.getElementById('modal-title').textContent = 'Edit Emoji';
+            document.getElementById('emoji-id').value = emoji.id;
+            document.getElementById('emoji-name').value = emoji.name;
+            document.getElementById('emoji-hash').value = emoji.hash;
+            document.getElementById('emoji-animated').checked = emoji.animated;
+            
+            document.getElementById('emoji-modal').classList.remove('hidden');
+        }
+    );
 }
 
 // Save emoji (create or update)
@@ -114,13 +119,13 @@ async function saveEmoji(event) {
     const data = { name, hash, animated };
     
     try {
-        const url = id ? `${API_BASE}/emojis/${id}` : `${API_BASE}/emojis`;
+        const url = id ? `${window.API_BASE}/emojis/${id}` : `${window.API_BASE}/emojis`;
         const method = id ? 'PUT' : 'POST';
         
         const response = await fetch(url, {
             method,
             headers: {
-                'Authorization': `Bearer ${API_SECRET}`,
+                'Authorization': `Bearer ${window.API_SECRET}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
@@ -143,30 +148,81 @@ async function saveEmoji(event) {
 
 // Delete emoji
 async function deleteEmoji(id, name) {
-    if (!confirm(`Are you sure you want to delete emoji ":${name}:"?`)) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE}/emojis/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${API_SECRET}`
+    showConfirmModal(
+        'Delete Emoji',
+        `Are you sure you want to permanently delete ":${name}:"? This action cannot be undone.`,
+        'Delete',
+        async () => {
+            try {
+                const response = await fetch(`${window.API_BASE}/emojis/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${window.API_SECRET}`
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Success', result.message, 'success');
+                    loadEmojis();
+                } else {
+                    showAlert('Error', result.error || 'Failed to delete emoji', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting emoji:', error);
+                showAlert('Error', 'Failed to delete emoji', 'error');
             }
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            showAlert('Success', result.message, 'success');
-            loadEmojis();
-        } else {
-            showAlert('Error', result.error || 'Failed to delete emoji', 'error');
+        },
+        true // isDanger flag
+    );
+}
+
+// Show confirmation modal
+function showConfirmModal(title, message, confirmText, onConfirm, isDanger = false) {
+    const modalId = 'confirm-modal-' + Date.now();
+    const buttonClass = isDanger 
+        ? 'bg-red-500 hover:bg-red-600 text-white' 
+        : 'bg-accent hover:bg-accent/80 text-black';
+    
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4';
+    modal.innerHTML = `
+        <div class="bg-black border-2 ${isDanger ? 'border-red-500' : 'border-accent'} max-w-md w-full p-6 shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-4">${title}</h2>
+            <p class="text-gray-300 mb-6">${message}</p>
+            <div class="flex gap-3">
+                <button 
+                    onclick="document.getElementById('${modalId}').remove()" 
+                    class="flex-1 px-4 py-2 border border-white/10 text-gray-300 hover:bg-white/5 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button 
+                    id="${modalId}-confirm"
+                    class="flex-1 px-4 py-2 ${buttonClass} font-semibold transition-colors"
+                >
+                    ${confirmText}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add confirm button handler
+    document.getElementById(`${modalId}-confirm`).addEventListener('click', () => {
+        modal.remove();
+        onConfirm();
+    });
+    
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
         }
-    } catch (error) {
-        console.error('Error deleting emoji:', error);
-        showAlert('Error', 'Failed to delete emoji', 'error');
-    }
+    });
 }
 
 // Close modal
@@ -204,7 +260,14 @@ function showAlert(title, message, type = 'info') {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+function initEmojisPage() {
+    // Wait for config to be loaded
+    if (!window.API_BASE || !window.API_SECRET) {
+        console.log('Waiting for config to load...');
+        setTimeout(initEmojisPage, 50);
+        return;
+    }
+    
     loadEmojis();
     
     // Setup form submit
@@ -216,4 +279,11 @@ document.addEventListener('DOMContentLoaded', () => {
             closeEmojiModal();
         }
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmojisPage);
+} else {
+    // DOM already loaded, run immediately
+    initEmojisPage();
+}

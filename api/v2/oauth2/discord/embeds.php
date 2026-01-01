@@ -9,10 +9,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once 'config.php';
+require_once 'env.php';
 require_once 'db.php';
 
-$db = getDBConnection();
+// API Authentication
+$api_secret = env('API_SECRET');
+$auth_header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+
+if (!$auth_header || $auth_header !== 'Bearer ' . $api_secret) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized - Invalid API key']);
+    exit;
+}
+
+$db = $pdo;
 $method = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['REQUEST_URI'];
 

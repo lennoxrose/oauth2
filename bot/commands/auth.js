@@ -7,10 +7,13 @@ module.exports = {
   aliases: ['verify', 'link'],
   description: 'Get the verification link to authenticate with Discord OAuth2',
   
-  async execute(message, args, { config }) {
-    const webUrl = config.web_url || 'https://lennox-rose.com/oauth2/';
+  async execute(message, args, { config, embedLoader }) {
+    const webUrl = config.web_url;
     
-    const embed = embeds.authLink(webUrl);
+    const embed = await embedLoader.loadEmbed('auth_link');
+    if (!embed) {
+      return message.reply({ embeds: [embeds.error('Embed Not Found', 'The auth link embed has not been created in the panel.')] });
+    }
 
     try {
       await message.reply({ embeds: [embed] });

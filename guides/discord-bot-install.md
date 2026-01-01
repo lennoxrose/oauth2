@@ -54,6 +54,8 @@ config.example.xml → config.xml
 2. Populate the configuration file with the required values, including:
 
 * **API_SECRET**: The shared API secret used across the frontend, backend, and Discord bot. This value must be identical in all components.
+* **WEB_URL**: The public-facing URL of your OAuth2 frontend where users will be redirected for verification (e.g., `https://example.com`). The bot automatically appends `/oauth2/` for verification links.
+* **API_BASE_URL**: The base URL of your backend API server used for all API requests (e.g., `https://api.example.com/v2/oauth2/discord`). Must match the API endpoint configuration. 
 
 Completion of this step assumes that the OAuth2 backend and administrative panel are already deployed, as the Discord bot is registered and managed through the admin interface.
 

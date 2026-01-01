@@ -104,44 +104,4 @@ insert into embeds (name, title, color, footer_text, fields) values
     ]'
 );
 
--- Error embed template
-insert into embeds (name, title, description, color, timestamp) values
-(
-    'error',
-    '<:cancel:1404070746770112623> Error',
-    'An error occurred. Please try again.',
-    '#1e1e1e',
-    true
-);
-
--- Success embed template
-insert into embeds (name, title, description, color, timestamp) values
-(
-    'success',
-    '<:confirm:1404062089718272003> Success',
-    'Operation completed successfully!',
-    '#1e1e1e',
-    true
-);
-
--- Info embed template
-insert into embeds (name, title, description, color, timestamp) values
-(
-    'info',
-    '<:info:1447332734413439118> Information',
-    'Here is some information.',
-    '#1e1e1e',
-    true
-);
-
--- Warning embed template
-insert into embeds (name, title, description, color, timestamp) values
-(
-    'warning',
-    '<:warn:1447333026874003676> Warning',
-    'Please pay attention to this warning.',
-    '#1e1e1e',
-    true
-);
-
  

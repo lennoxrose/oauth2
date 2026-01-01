@@ -22,9 +22,17 @@ class ConfigLoader {
         try {
             const parsed = parser.parse(xml).config || {};
             this.apiSecret = parsed.api_secret;
+            this.webUrl = parsed.web_url;
+            this.apiBaseUrl = parsed.api_base_url;
             
             if (!this.apiSecret) {
                 throw new Error('Missing <api_secret> in config.xml');
+            }
+            if (!this.webUrl) {
+                throw new Error('Missing <web_url> in config.xml');
+            }
+            if (!this.apiBaseUrl) {
+                throw new Error('Missing <api_base_url> in config.xml');
             }
         } catch (e) {
             throw new Error('Failed to parse config.xml: ' + e.message);
@@ -34,7 +42,7 @@ class ConfigLoader {
     // Fetch all config from API
     async fetchFromAPI() {
         try {
-            const response = await axios.get('https://api.lennox-rose.com/v2/oauth2/discord/settings', {
+            const response = await axios.get(`${this.apiBaseUrl}/settings`, {
                 headers: {
                     'Authorization': `Bearer ${this.apiSecret}`
                 }
@@ -50,11 +58,12 @@ class ConfigLoader {
                 prefix: settings.prefix?.value || ';',
                 ownerId: settings.owner_id?.value || '',
                 redirect_uri: settings.redirect_uri?.value || '',
-                web_url: settings.web_url?.value || '',
+                web_url: settings.web_url?.value || this.webUrl,
                 verified_role_id: settings.verified_role_id?.value || '',
                 unverified_role_id: settings.unverified_role_id?.value || '',
                 guild_id: settings.guild_id?.value || '',
-                api_secret: this.apiSecret
+                api_secret: this.apiSecret,
+                api_base_url: this.apiBaseUrl
             };
 
             return this.config;

@@ -120,6 +120,14 @@ mysql -u oauth2_api -p"your_password" oauth2_api < database/discord_verified_use
 mysql -u oauth2_api -p"your_password" oauth2_api < database/pending_role_assignments.sql || true
 ```
 
+#### 7.1 Import Database Migrations
+
+Execute all migration scripts to apply schema updates and seed data:
+
+```
+mysql -u oauth2_api -p"your_password" oauth2_api < database/migrations/*.sql || true
+```
+
 ---
 
 ### Step 8: Backend Environment Configuration (.env.secret)

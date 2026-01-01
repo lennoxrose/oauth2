@@ -1,59 +1,100 @@
 'use strict';
 
-const mysql = require('mysql2/promise');
+const axios = require('axios');
 const { EmbedBuilder } = require('discord.js');
 
-// Database connection pool
-let pool = null;
+// API configuration
+let apiConfig = null;
+let embedsCache = null;
+let emojisCache = null;
+let lastCacheUpdate = 0;
+const CACHE_TTL = 10000; // 10 seconds
 
 /**
- * Initialize database connection
- * @param {Object} config - Database configuration from config.xml
+ * Initialize API connection
+ * @param {Object} config - API configuration { api_base, api_secret }
  */
 function initDatabase(config) {
-  pool = mysql.createPool({
-    host: config.host,
-    user: config.user,
-    password: config.password,
-    database: config.database,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-  });
+  apiConfig = {
+    api_base: config.api_base,
+    api_secret: config.api_secret
+  };
 }
 
 /**
- * Load all emojis from database
+ * Refresh embeds cache from API
+ */
+async function refreshEmbedsCache() {
+  if (!apiConfig) throw new Error('API not initialized');
+  
+  const now = Date.now();
+  if (embedsCache && (now - lastCacheUpdate) < CACHE_TTL) {
+    return; // Cache still valid
+  }
+  
+  try {
+    const response = await axios.get(`${apiConfig.api_base}/embeds`, {
+      headers: {
+        'Authorization': `Bearer ${apiConfig.api_secret}`
+      }
+    });
+    
+    embedsCache = response.data.embeds || [];
+    lastCacheUpdate = now;
+  } catch (error) {
+    console.error('Failed to refresh embeds cache:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Load all emojis from API
  * @returns {Promise<Object>} - Emoji map { name: '<:name:id>' }
  */
 async function loadEmojis() {
-  if (!pool) throw new Error('Database not initialized');
+  if (!apiConfig) throw new Error('API not initialized');
   
-  const [rows] = await pool.query('SELECT name, hash, animated FROM nitro_emojis');
+  // Use cache if available
+  if (emojisCache) return emojisCache;
   
-  const emojis = {};
-  for (const row of rows) {
-    emojis[row.name] = `<${row.animated ? 'a' : ''}:${row.name}:${row.hash}>`;
+  try {
+    const response = await axios.get(`${apiConfig.api_base}/emojis`, {
+      headers: {
+        'Authorization': `Bearer ${apiConfig.api_secret}`
+      }
+    });
+    
+    const emojis = {};
+    for (const emoji of response.data.emojis || []) {
+      emojis[emoji.name] = `<${emoji.animated ? 'a' : ''}:${emoji.name}:${emoji.hash}>`;
+    }
+    
+    emojisCache = emojis;
+    return emojis;
+  } catch (error) {
+    console.error('Failed to load emojis from API:', error.message);
+    return {};
   }
-  
-  return emojis;
 }
 
 /**
- * Load embed from database by name
+ * Load embed from API by name
  * @param {string} embedName - The name of the embed to load
  * @returns {Promise<EmbedBuilder|null>} - Discord.js EmbedBuilder or null if not found
  */
 async function loadEmbed(embedName) {
-  if (!pool) throw new Error('Database not initialized');
+  if (!apiConfig) throw new Error('API not initialized');
   
-  const [rows] = await pool.query('SELECT * FROM embeds WHERE name = ? LIMIT 1', [embedName]);
+  // Refresh cache if needed
+  await refreshEmbedsCache();
   
-  if (rows.length === 0) {
+  // Find embed by name
+  const embed = embedsCache.find(e => e.name === embedName);
+  
+  if (!embed) {
     return null;
   }
   
-  const embed = rows[0];
   const builder = new EmbedBuilder();
   
   // Set color (convert hex to integer)
@@ -129,14 +170,14 @@ async function loadEmbed(embedName) {
 }
 
 /**
- * Load all embeds from database
+ * Load all embeds from API
  * @returns {Promise<Array>} - Array of embed objects
  */
 async function loadAllEmbeds() {
-  if (!pool) throw new Error('Database not initialized');
+  if (!apiConfig) throw new Error('API not initialized');
   
-  const [rows] = await pool.query('SELECT * FROM embeds ORDER BY name ASC');
-  return rows;
+  await refreshEmbedsCache();
+  return embedsCache || [];
 }
 
 /**

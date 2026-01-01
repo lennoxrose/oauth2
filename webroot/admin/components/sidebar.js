@@ -1,5 +1,6 @@
 // Centralized sidebar management and version control
-const SCRIPT_VERSION = 49; // Update this single number to cache-bust all JS files
+const SCRIPT_VERSION = 55; // Update this single number to cache-bust all JS files
+const PANEL_VERSION = '1.0.0'; // Admin panel version
 
 // Sidebar configuration
 const SIDEBAR_PAGES = [
@@ -91,6 +92,9 @@ function generateSidebar(activePage) {
             </nav>
             
             <div class="${footerClasses}">
+                <div class="text-xs text-gray-500 text-center mb-3">
+                    <div>Cache v${SCRIPT_VERSION} • Panel v${PANEL_VERSION}</div>
+                </div>
                 <button id="logout-button" class="w-full px-4 py-3 border border-red-500/20 text-red-400 hover:bg-red-500/5 transition-colors flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>

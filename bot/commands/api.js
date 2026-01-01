@@ -3,14 +3,13 @@
 const axios = require('axios');
 const embeds = require('../embeds');
 
-const API_BASE = 'https://api.lennox-rose.com/v2/oauth2/discord';
-
 module.exports = {
   name: 'pullback',
   aliases: ['pull', 'invite'],
   description: 'Pull verified users back to this server',
   
-  async execute(message, args, { client, config }) {
+  async execute(message, args, { client, config, embedLoader }) {
+    const API_BASE = config.api_base_url;
     // Check if user has permission
     if (!message.member.permissions.has('Administrator') && message.author.id !== config.owner_id) {
       return message.reply({ embeds: [embeds.error('Permission Denied', 'You need Administrator permission to use this command.')] });
@@ -36,7 +35,19 @@ module.exports = {
           return message.reply({ embeds: [embeds.info('No Users', 'No verified users found.')] });
         }
 
-        const embed = embeds.verifiedUsersList(users);
+        const embed = await embedLoader.loadEmbed('verified_users_list');
+        if (!embed) {
+          return message.reply({ embeds: [embeds.error('Embed Not Found', 'The verified users list embed has not been created in the panel.')] });
+        }
+        
+        // Add user fields to embed
+        users.slice(0, 25).forEach(u => {
+          embed.addFields({
+            name: `👤 ${u.username}${u.discriminator !== '0' ? '#' + u.discriminator : ''}`,
+            value: `ID: ${u.user_id}\nVerified: <t:${Math.floor(new Date(u.verified_at).getTime() / 1000)}:R>`,
+            inline: true
+          });
+        });
 
         return message.reply({ embeds: [embed] });
       } catch (err) {
@@ -155,9 +166,41 @@ module.exports = {
           }
         }
 
-        const resultEmbed = embeds.pullbackResults(success, failed, alreadyIn);
+        const resultEmbed = await embedLoader.loadEmbed('pullback_results');
+        if (!resultEmbed) {
+          return message.reply({ embeds: [embeds.error('Embed Not Found', 'The pullback results embed has not been created in the panel.')] });
+        }
+        
+        // Load custom emojis
+        const customEmojis = await embedLoader.loadEmojis();
+        
+        // Replace placeholders in description and fields
+        let embedData = resultEmbed.toJSON();
+        
+        // Replace placeholders in description
+        if (embedData.description) {
+          embedData.description = embedData.description
+            .replace(/\{success\}/g, success.toString())
+            .replace(/\{failed\}/g, failed.toString())
+            .replace(/\{already_in\}/g, alreadyIn.toString());
+        }
+        
+        // Replace placeholders in fields
+        if (embedData.fields) {
+          embedData.fields = embedData.fields.map(field => ({
+            ...field,
+            name: field.name
+              .replace(/\{success\}/g, success.toString())
+              .replace(/\{failed\}/g, failed.toString())
+              .replace(/\{already_in\}/g, alreadyIn.toString()),
+            value: field.value
+              .replace(/\{success\}/g, success.toString())
+              .replace(/\{failed\}/g, failed.toString())
+              .replace(/\{already_in\}/g, alreadyIn.toString())
+          }));
+        }
 
-        return message.reply({ embeds: [resultEmbed] });
+        return message.reply({ embeds: [embedData] });
       } catch (err) {
         console.error('API Error:', err.message);
         return message.reply({ embeds: [embeds.error('API Error', 'Failed to fetch verified users from API.')] });

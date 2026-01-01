@@ -50,7 +50,7 @@
 
     <!-- Add/Edit Emoji Modal -->
     <div id="emoji-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-        <div class="bg-black border border-white/10 max-w-md w-full p-6">
+        <div class="bg-black border-2 border-accent max-w-md w-full p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-6">
                 <h2 id="modal-title" class="text-xl font-bold text-white">Add Emoji</h2>
                 <button onclick="closeEmojiModal()" class="text-gray-400 hover:text-white">
@@ -132,24 +132,34 @@
         </div>
     </div>
 
-    <script src="../../components/sidebar.js?v=49"></script>
+    <script src="../../components/sidebar.js?v=55"></script>
     <script>
         // Initialize sidebar for this page
         document.addEventListener('DOMContentLoaded', function() {
             initSidebar('emojis');
             
-            // Load versioned scripts
+            // Load versioned scripts sequentially
             const scripts = [
                 { src: '../../js/config.js', version: window.SCRIPT_VERSION },
                 { src: '../../js/auth.js', version: window.SCRIPT_VERSION },
                 { src: '../../js/emojis.js', version: window.SCRIPT_VERSION }
             ];
             
-            scripts.forEach(script => {
+            function loadScriptSequentially(index) {
+                if (index >= scripts.length) return;
+                
+                const script = scripts[index];
                 const s = document.createElement('script');
                 s.src = `${script.src}?v=${script.version}`;
+                s.onload = () => loadScriptSequentially(index + 1);
+                s.onerror = () => {
+                    console.error(`Failed to load script: ${script.src}`);
+                    loadScriptSequentially(index + 1);
+                };
                 document.body.appendChild(s);
-            });
+            }
+            
+            loadScriptSequentially(0);
         });
     </script>
 </body>
