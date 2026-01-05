@@ -57,8 +57,18 @@ foreach ($users as $user) {
     $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
     
-    // Check if token is invalid (401 response)
-    if ($response === false || (isset($http_response_header) && strpos($http_response_header[0], '401') !== false)) {
+    // Check if token is invalid (ONLY 401 response, not network failures)
+    $is_unauthorized = false;
+    if (isset($http_response_header)) {
+        foreach ($http_response_header as $header) {
+            if (strpos($header, 'HTTP/') === 0 && strpos($header, '401') !== false) {
+                $is_unauthorized = true;
+                break;
+            }
+        }
+    }
+    
+    if ($is_unauthorized) {
         // Delete this user
         $delete_stmt = $pdo->prepare("DELETE FROM discord_verified_users WHERE user_id = ?");
         $delete_stmt->execute([$user['user_id']]);
