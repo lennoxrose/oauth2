@@ -1,6 +1,6 @@
 // Centralized sidebar management and version control
-const SCRIPT_VERSION = 55; // Update this single number to cache-bust all JS files
-const PANEL_VERSION = '1.0.0'; // Admin panel version
+const SCRIPT_VERSION = 60; // Update this single number to cache-bust all JS files
+const PANEL_VERSION = '1.0.1'; // Admin panel version
 
 // Sidebar configuration
 const SIDEBAR_PAGES = [
@@ -51,6 +51,12 @@ const SIDEBAR_PAGES = [
         label: 'Permissions',
         href: '/admin/dashboard/permissions/',
         icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
+    },
+    {
+        id: 'extensions',
+        label: 'Extensions',
+        href: '/admin/dashboard/extensions/',
+        icon: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z'
     }
 ];
 

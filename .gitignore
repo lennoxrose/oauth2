@@ -28,6 +28,10 @@ api-nginx-config-personal
 /webroot/script.js
 /webroot/discord/theme/vencord.css
 
+# Unfinished Features
+/webroot/admin/dashboard/extensions/pterodactyl
+/api/v2/oauth2/extensions/
+
 # Removed Files
 /guides/.ignore.md
 
